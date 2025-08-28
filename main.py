@@ -30,13 +30,13 @@ class PlayerCard:
 
 # 🎴 카드 풀
 card_pool = [
-    PlayerCard("노시환", 9, 5),
+    PlayerCard("노시환", 9, 5,),
     PlayerCard("채은성", 6, 9),
     PlayerCard("하주석", 5, 6),
     PlayerCard("문현빈", 7, 5),
     PlayerCard("김태연", 4, 8),
     PlayerCard("이진영", 6, 6),
-    PlayerCard("김인환", 5, 4),
+    PlayerCard("김인환", 5, 4,),
     PlayerCard("폰세", 7, 6),
     PlayerCard("류현진", 8, 9),
     PlayerCard("김서현", 6, 7),
@@ -47,8 +47,8 @@ card_pool = [
     PlayerCard("리베라토", 8, 7, special="double_atk"),
     PlayerCard("최재훈", 5, 9, special="one_hit_win"),
     PlayerCard("정우람", 6, 8, special="shield"),
-    PlayerCard("엄상백", 7, 6, special="reflect"),
-    PlayerCard("장민재", 5, 7, special="revive"),
+    PlayerCard("문동주", 7, 6, special="reflect",),
+    PlayerCard("장민재", 5, 7, special="revive",),
     PlayerCard("주현상", 6, 6, special="shield"),
 
     # 전설 카드
@@ -201,5 +201,5 @@ if st.button("⚔️ 대결 시작"):
         if com_card.level_up():
             st.write(f"💻 {com_card.name}이 레벨업했습니다!")
     else:
-        st.info("🤝 무승부입니다! 두 카드 모두 살아
+        st.info("🤝 무승부입니다! 두 카드 모두 살아남습니다!")
 

@@ -380,4 +380,3 @@ if st.button("⚔️ 대결 시작"):
 
     if not st.session_state.user_cards or not st.session_state.com_cards:
         st.session_state.game_over = True
-```

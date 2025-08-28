@@ -10,7 +10,6 @@ class PlayerCard:
     def __str__(self):
         return f"{self.name} (공격력: {self.atk} / 수비력: {self.def_})"
 
-# 선수 능력치 새로 세팅
 card_pool = [
     PlayerCard("노시환", 8, 7),
     PlayerCard("채은성", 7, 8),
@@ -38,7 +37,6 @@ def reset_game():
     st.session_state.game_over = False
 
 def computer_choose_card(com_cards, user_card):
-    # 컴퓨터 AI: 사용자 공격력 이상 수비력 카드 우선, 없으면 공격력 높은 카드 선택
     candidates = [card for card in com_cards if card.def_ >= user_card.atk]
     if candidates:
         chosen = max(candidates, key=lambda c: c.atk)
@@ -53,7 +51,6 @@ st.title("🟠 한화 이글스 카드 배틀 - 생존자 모드")
 
 if st.button("게임 초기화"):
     reset_game()
-    st.experimental_rerun()
 
 if st.session_state.game_over:
     if len(st.session_state.user_cards) == 0:
@@ -100,8 +97,5 @@ else:
 
         st.session_state.round += 1
 
-        # 게임 종료 조건 체크
         if len(st.session_state.user_cards) == 0 or len(st.session_state.com_cards) == 0:
             st.session_state.game_over = True
-
-        st.experimental_rerun()

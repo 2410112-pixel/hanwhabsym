@@ -79,10 +79,8 @@ def computer_choose_card(com_cards, user_card):
     if not unused:
         return com_cards[0]
 
-    # 플레이어 카드 방어력이 높으면 공격력이 높은 카드 선택
     if user_card.def_ > user_card.atk:
         chosen = max(unused, key=lambda c: c.atk)
-    # 플레이어 카드 공격력이 높으면 수비력이 높은 카드 선택
     else:
         candidates = [c for c in unused if c.def_ >= user_card.atk]
         chosen = max(candidates, key=lambda c: c.def_) if candidates else max(unused, key=lambda c: c.atk)
@@ -95,12 +93,9 @@ def apply_special(card, opponent_card):
     msg = ""
     if card.special and not card.used_special:
         if card.special == "double_atk":
-            card.atk *= 2
             msg = f"✨ **{card.name}**의 특수능력 발동! 공격력이 2배로 증가!"
-            card.used_special = True
         elif card.special == "one_hit_win":
             msg = f"💥 **{card.name}**의 특수능력 발동! 이번 라운드는 무조건 승리!"
-            card.used_special = True
         elif card.special == "shield":
             msg = f"🛡️ **{card.name}**의 특수능력 발동! 이번 공격을 방어합니다!"
         elif card.special == "reflect":
@@ -116,14 +111,12 @@ if 'user_cards' not in st.session_state:
 # 🎮 UI 구성
 st.title("⚾ 한화 이글스 카드 배틀 - 특수 능력 & 레벨업 모드")
 
-# ---
-# 특수 능력 설명 추가
 st.markdown("---")
 st.subheader("🔮 특수 능력 설명")
 st.info("""
 - **double_atk**: 공격력이 2배로 증가합니다.
 - **one_hit_win**: 해당 라운드에서 무조건 승리합니다. (단, 상대방도 같은 능력이면 무승부)
-- **shield**: 상대방의 공격을 방어합니다.
+- **shield**: 상대방의 공격을 방어하고, 내 공격력으로 승리 여부를 결정합니다.
 - **reflect**: 상대방의 공격을 반사하여 승리합니다.
 - **revive**: 한 번 패배해도 부활하여 살아남습니다.
 """)
@@ -145,7 +138,6 @@ st.markdown(f"👤 **내 카드 ({len(st.session_state.user_cards)}명)**")
 for idx, card in enumerate(st.session_state.user_cards):
     st.write(f"{idx + 1}. {card}")
 
-# 특수 능력 설명이 포함된 카드 선택 상자
 def format_card_with_special(i):
     card = st.session_state.user_cards[i]
     if card.special == "double_atk":
@@ -172,8 +164,8 @@ if st.button("⚔️ 대결 시작"):
     user_card = st.session_state.user_cards[choice]
     com_card = computer_choose_card(st.session_state.com_cards, user_card)
 
-    st.write(f"👤 당신: {user_card.name}")
-    st.write(f"💻 컴퓨터: {com_card.name}")
+    st.write(f"👤 **당신 카드**: {user_card.name}")
+    st.write(f"💻 **컴퓨터 카드**: {com_card.name}")
 
     user_msg = apply_special(user_card, com_card)
     if user_msg: st.info(user_msg)
@@ -181,24 +173,58 @@ if st.button("⚔️ 대결 시작"):
     com_msg = apply_special(com_card, user_card)
     if com_msg: st.info(com_msg)
 
-    # 특수 능력 우선 처리
+    # 대결 로직
     result = None
+
+    # one_hit_win 능력 우선 처리
     if user_card.special == "one_hit_win" and not user_card.used_special:
-        result = 'user'
+        if com_card.special == "one_hit_win" and not com_card.used_special:
+            result = 'draw'
+        else:
+            result = 'user'
+            user_card.used_special = True
     elif com_card.special == "one_hit_win" and not com_card.used_special:
         result = 'com'
+        com_card.used_special = True
+    
+    # reflect 능력 처리
     elif user_card.special == "reflect" and not user_card.used_special:
         result = 'user'
+        user_card.used_special = True
     elif com_card.special == "reflect" and not com_card.used_special:
         result = 'com'
+        com_card.used_special = True
+
+    # shield 능력 처리 (공격력으로 승패 결정)
     elif user_card.special == "shield" and not user_card.used_special:
-        result = 'draw' # 내 실드로 무효화
+        user_card.used_special = True
+        if user_card.atk > com_card.def_:
+            result = 'user'
+        else:
+            result = 'draw'
     elif com_card.special == "shield" and not com_card.used_special:
-        result = 'draw' # 상대 실드로 무효화
+        com_card.used_special = True
+        if com_card.atk > user_card.def_:
+            result = 'com'
+        else:
+            result = 'draw'
+
+    # 일반 대결 (공격력-수비력 차이로 승패 결정)
     else:
-        # 일반 대결: 공격력-수비력 차이로 승패 결정
+        # double_atk 능력 적용 (일반 대결 직전)
+        if user_card.special == "double_atk" and not user_card.used_special:
+            user_card.atk *= 2
+            user_card.used_special = True
+        if com_card.special == "double_atk" and not com_card.used_special:
+            com_card.atk *= 2
+            com_card.used_special = True
+
         user_score = user_card.atk - com_card.def_
         com_score = com_card.atk - user_card.def_
+
+        st.markdown(f"**대결 분석:**")
+        st.write(f"- 당신의 공격력 ({user_card.atk}) vs 컴퓨터의 수비력 ({com_card.def_}): **차이 {user_score}**")
+        st.write(f"- 컴퓨터의 공격력 ({com_card.atk}) vs 당신의 수비력 ({user_card.def_}): **차이 {com_score}**")
 
         if user_score > com_score:
             result = 'user'

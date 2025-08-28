@@ -25,8 +25,9 @@ class PlayerCard:
             return True
         return False
 
+    # ❗ 특수 능력 사용 여부에 따라 표시를 변경하도록 수정
     def __str__(self):
-        spc = f" | 특수: {self.special}" if self.special else ""
+        spc = f" | 특수: {self.special}" if self.special and not self.used_special else ""
         return f"({self.name}) Lv.{self.level} (공: {self.atk} / 수: {self.def_}){spc}"
 
 # 🎴 카드 풀 (총 30명)
@@ -191,6 +192,7 @@ st.markdown(f"👤 **내 카드 ({len(st.session_state.user_cards)}명)**")
 for idx, card in enumerate(st.session_state.user_cards):
     st.write(f"{idx + 1}. {card}")
 
+# ❗ selectbox의 카드 표시를 특수 능력 사용 여부에 따라 변경
 def format_card_with_special(i):
     card = st.session_state.user_cards[i]
     special_names = {
@@ -207,7 +209,11 @@ def format_card_with_special(i):
         "legendary_power": "전설의 힘"
     }
     special_info = special_names.get(card.special, "")
-    return f"{str(card)} ({special_info})" if special_info else str(card)
+    # 특수 능력을 사용하지 않았을 때만 능력을 표시
+    if special_info and not card.used_special:
+        return f"{str(card)} ({special_info})"
+    else:
+        return str(card)
 
 try:
     choice = st.selectbox("사용할 카드를 선택하세요:", range(len(st.session_state.user_cards)),
